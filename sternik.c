@@ -1,3 +1,26 @@
+/*******************************************************
+ * File: sternik.c
+ *
+ * Obsługa dwóch łodzi (boat1 i boat2).
+ * Parametry (stałe w kodzie lub #define):
+ *   - N1, T1 -> max pasażerów i czas rejsu łodzi 1
+ *   - N2, T2 -> max pasażerów i czas rejsu łodzi 2
+ *   - K       -> max osób jednocześnie na pomoście
+ *
+ * Przyjmuje argv[1] = <timeout> (np. 60 sekund) – do określenia,
+ * do kiedy w ogóle można wypływać w nowy rejs.
+ *
+ * Obsługuje sygnały SIGUSR1 / SIGUSR2:
+ *   - SIGUSR1 -> przerwanie łodzi1
+ *   - SIGUSR2 -> przerwanie łodzi2
+ *
+ * Komunikaty z fifo_sternik_in:
+ *   - QUEUE <pid> <boat> <disc>
+ *   - QUEUE_SKIP <pid> <boat>
+ *   - INFO
+ *   - QUIT
+ ******************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -8,22 +31,21 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <stdarg.h>
+#include <errno.h>
 
+/* ---- PARAMETRY ŁODZI ---- */
+#define N1 5         // maks pasażerów łódź1
+#define T1 2         // czas rejsu łódź1
+#define N2 6         // maks pasażerów łódź2
+#define T2 2         // czas rejsu łódź2
+#define K  2         // max osób naraz na pomoście
+#define LOAD_TIMEOUT 2  // ile sekund czekamy na kolejnych pasażerów
 
-/* ---- KONFIGURACJA PARAMETRÓW ---- */
-#define N1 5
-#define T1 3
-#define N2 6
-#define T2 4
-#define K  2
-
-#define LOAD_TIMEOUT 5  
-
-/* ---- KOLEJKA PASAŻERÓW ---- */
+/* ---- Kolejka pasażerów ---- */
 #define QSIZE 50
 typedef struct {
     int pid;
-    int disc;
+    int disc; // zniżka (tylko do logów)
 } PassengerItem;
 
 typedef struct {
@@ -33,22 +55,22 @@ typedef struct {
     int count;
 } PassQueue;
 
-void initQueue(PassQueue *q) {
+static void initQueue(PassQueue *q) {
     q->front=0; 
     q->rear=0;  
     q->count=0;
 }
-int isEmpty(PassQueue *q) { return (q->count == 0); }
-int isFull(PassQueue *q)  { return (q->count == QSIZE); }
+static int isEmpty(PassQueue *q) { return (q->count == 0); }
+static int isFull(PassQueue *q)  { return (q->count == QSIZE); }
 
-int enqueue(PassQueue *q, PassengerItem it) {
+static int enqueue(PassQueue *q, PassengerItem it) {
     if (isFull(q)) return -1;
     q->items[q->rear] = it;
     q->rear = (q->rear+1) % QSIZE;
     q->count++;
     return 0;
 }
-PassengerItem dequeue(PassQueue *q) {
+static PassengerItem dequeue(PassQueue *q) {
     PassengerItem tmp = {0,0};
     if (isEmpty(q)) return tmp;
     tmp = q->items[q->front];
@@ -57,43 +79,40 @@ PassengerItem dequeue(PassQueue *q) {
     return tmp;
 }
 
-/* ---- GLOBALNE KOLEJKI: łódź1 i łódź2 ---- */
+/* Kolejki: skip i normalne dla łodzi 1 i 2 */
 static PassQueue queueBoat1;
+static PassQueue queueBoat1_skip;
 static PassQueue queueBoat2;
+static PassQueue queueBoat2_skip;
 
-/* ---- LOG FILE (opcjonalne, aby zapisać każdą akcję) ---- */
+/* Plik logów (opcjonalny) */
 static FILE *sternikLog = NULL;
 
-/* ---- FLAGA SYGNAŁOWA (POLICJA) ---- */
+/* boatX_active -> czy łódź X ma kontynuować kursy (1 = tak, 0 = nie) */
 static volatile sig_atomic_t boat1_active = 1;
 static volatile sig_atomic_t boat1_inrejs = 0;
 
 static volatile sig_atomic_t boat2_active = 1;
 static volatile sig_atomic_t boat2_inrejs = 0;
 
-/* ---- STAN POMOSTU ---- */
+/* Czas startu i czas końca (timeout z argv[1]) */
+static time_t start_time;
+static time_t end_time;
+
+/* Stan pomostu: INBOUND (pasażerowie wchodzą), OUTBOUND (wychodzą), FREE */
 typedef enum {INBOUND, OUTBOUND, FREE} PomostState;
 static PomostState pomost_state = FREE;
-static int pomost_count = 0;
+static int pomost_count = 0;  // ile osób na pomoście
 
-/* MUTEX, warunek */
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond_pomost_free = PTHREAD_COND_INITIALIZER;
 
-
-/* 
-   --------------- OBSŁUGA SYGNAŁÓW OD POLICJANTA ---------------
-   - Jeżeli łódź w rejsie -> dokończy, a potem wyładunek i koniec
-   - Jeżeli jeszcze nie wypłynęła -> OUTBOUND (jeśli jacyś pasażerowie na pokładzie?), 
-     komunikat, i koniec (boatX_active=0).
-*/
-
-/* Wspólna funkcja do logowania (wypisywanie jednocześnie do stdout i do pliku) */
+/* Funkcja wspólnego logowania */
 static void logMsg(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    vfprintf(stdout, fmt, ap); 
+    vfprintf(stdout, fmt, ap);
     fflush(stdout);
     if (sternikLog) {
         vfprintf(sternikLog, fmt, ap);
@@ -102,44 +121,47 @@ static void logMsg(const char *fmt, ...)
     va_end(ap);
 }
 
-/* Handler dla łodzi 1 */
-void sigusr1_handler(int sig) {
+/* Sygnały policjanta: łódź1 -> SIGUSR1, łódź2 -> SIGUSR2 */
+static void sigusr1_handler(int sig) {
+    /* boat1_active=0 -> łódź1 nie popłynie więcej;
+       jeśli w rejsie, zakończy rejs i potem koniec,
+       jeśli w porcie -> wyładuje pasażerów od razu. */
     if (!boat1_inrejs) {
-        // Jeszcze nie wypłynęła
-        logMsg("[BOAT1] (SIGUSR1) -> w przystani, ewakuacja i koniec.\n");
-        boat1_active = 0;
+        logMsg("[BOAT1] (SIGUSR1) -> w porcie, koniec.\n");
     } else {
-        // W rejsie
         logMsg("[BOAT1] (SIGUSR1) -> w rejsie, dokończę i koniec.\n");
-        boat1_active = 0;
     }
+    boat1_active=0;
 }
-
-/* Handler dla łodzi 2 */
-void sigusr2_handler(int sig) {
+static void sigusr2_handler(int sig) {
     if (!boat2_inrejs) {
-        logMsg("[BOAT2] (SIGUSR2) -> w przystani, ewakuacja i koniec.\n");
-        boat2_active = 0;
+        logMsg("[BOAT2] (SIGUSR2) -> w porcie, koniec.\n");
     } else {
         logMsg("[BOAT2] (SIGUSR2) -> w rejsie, dokończę i koniec.\n");
-        boat2_active = 0;
     }
+    boat2_active=0;
 }
 
-/* Pomocnicze do pomostu */
+/* Pomost – wejście (pasażer próbuje wejść na pomost w trybie INBOUND) */
 static int enter_pomost(void)
 {
+    /* Możemy wejść, jeśli:
+       - stan pomostu = FREE lub INBOUND
+       - i nie przekroczymy limitu K
+    */
     if (pomost_state == FREE) {
         pomost_state = INBOUND;
     } else if (pomost_state != INBOUND) {
-        return 0;
+        return 0; // ruch w przeciwną stronę
     }
     if (pomost_count >= K) {
-        return 0;
+        return 0; // brak miejsca
     }
     pomost_count++;
     return 1;
 }
+
+/* Pomost – pasażer skończył wchodzić */
 static void leave_pomost_in(void)
 {
     pomost_count--;
@@ -148,253 +170,348 @@ static void leave_pomost_in(void)
         pthread_cond_broadcast(&cond_pomost_free);
     }
 }
+
+/* Start OUTBOUND (wyładunek pasażerów) */
 static void start_outbound(void)
 {
+    /* Czekamy, aż pomost będzie FREE */
     while (pomost_state != FREE) {
         pthread_cond_wait(&cond_pomost_free, &mutex);
     }
     pomost_state = OUTBOUND;
 }
+
+/* Koniec OUTBOUND */
 static void end_outbound(void)
 {
     pomost_state = FREE;
     pthread_cond_broadcast(&cond_pomost_free);
 }
 
-/* ---------------- BOAT1 THREAD ---------------- */
+/* Wątek łodzi1 */
 void *boat1_thread(void *arg)
 {
-    logMsg("[BOAT1] Start wątku - automatyczny, pomost K=%d.\n", K);
+    logMsg("[BOAT1] Start wątku (max=%d, T1=%ds).\n", N1, T1);
 
     while (1) {
         pthread_mutex_lock(&mutex);
 
-        // Sprawdzamy aktywność
+        /* Czy łódź jeszcze aktywna? */
         if (!boat1_active) {
             pthread_mutex_unlock(&mutex);
-            logMsg("[BOAT1] Kończę (boat1_active=0) w przystani.\n");
+            logMsg("[BOAT1] boat1_active=0 -> kończę.\n");
             break;
         }
 
-        // Czy są pasażerowie w kolejce
-        if (isEmpty(&queueBoat1)) {
+        /* Sprawdź, czy w kolejce są pasażerowie (skip lub normal) */
+        if (isEmpty(&queueBoat1_skip) && isEmpty(&queueBoat1)) {
             pthread_mutex_unlock(&mutex);
-            usleep(1000000);
+            usleep(50000);
             continue;
         }
 
-        logMsg("[BOAT1] Załadunek (INBOUND) - czekam do %d pasażerów.\n", N1);
-        int loaded = 0;
-        time_t tstart = time(NULL);
+        /* Załadunek pasażerów */
+        logMsg("[BOAT1] Załadunek...\n");
+        int loaded=0;
+        time_t load_start = time(NULL);
 
         while (loaded < N1 && boat1_active) {
-            if (isEmpty(&queueBoat1)) {
-                pthread_mutex_unlock(&mutex);
-                usleep(300000);
-                pthread_mutex_lock(&mutex);
-
-                if (difftime(time(NULL), tstart) >= LOAD_TIMEOUT) break;
-                if (!boat1_active) break;
+            /* Wybieramy w pierwszej kolejności skip, potem normal */
+            PassQueue *q = NULL;
+            if (!isEmpty(&queueBoat1_skip)) {
+                q = &queueBoat1_skip;
+            } else if (!isEmpty(&queueBoat1)) {
+                q = &queueBoat1;
             } else {
-                PassengerItem p = queueBoat1.items[queueBoat1.front];
-                if (pomost_state==FREE || pomost_state==INBOUND) {
-                    if (pomost_count < K) {
-                        dequeue(&queueBoat1);
-                        if (enter_pomost()) {
-                            leave_pomost_in();
-                            loaded++;
-                            logMsg("[BOAT1] Pasażer %d(disc=%d) wsiada (%d/%d)\n",
-                                    p.pid, p.disc, loaded, N1);
-                        }
-                    } else {
-                        pthread_mutex_unlock(&mutex);
-                        usleep(200000);
-                        pthread_mutex_lock(&mutex);
-                    }
-                } else {
-                    // pomost OUTBOUND
-                    pthread_mutex_unlock(&mutex);
-                    usleep(200000);
-                    pthread_mutex_lock(&mutex);
-                }
+                /* brak pasażerów w kolejce, czekamy do LOAD_TIMEOUT */
+                pthread_mutex_unlock(&mutex);
+                usleep(50000);
+                pthread_mutex_lock(&mutex);
+                if (!boat1_active) break;
+                if (difftime(time(NULL), load_start)>=LOAD_TIMEOUT) break;
+                continue;
             }
 
+            PassengerItem p = q->items[q->front];
+            /* Próba wejścia na pomost */
+            if (pomost_state==FREE || pomost_state==INBOUND) {
+                if (pomost_count < K) {
+                    dequeue(q);
+                    if (enter_pomost()) {
+                        /* Od razu zwalniamy pomost (symulacja wsiadania) */
+                        leave_pomost_in();
+                        loaded++;
+                        logMsg("[BOAT1] Pasażer %d(disc=%d) wsiada (%d/%d)\n",
+                               p.pid, p.disc, loaded, N1);
+                    }
+                } else {
+                    /* Pomost pełny */
+                    pthread_mutex_unlock(&mutex);
+                    usleep(50000);
+                    pthread_mutex_lock(&mutex);
+                }
+            } else {
+                /* pomost OUTBOUND -> czekamy */
+                pthread_mutex_unlock(&mutex);
+                usleep(50000);
+                pthread_mutex_lock(&mutex);
+            }
+
+            /* Sprawdzamy warunki wyjścia z pętli załadunku */
             if (!boat1_active) break;
             if (loaded == N1) break;
-            if (difftime(time(NULL), tstart) >= LOAD_TIMEOUT) break;
+            if (difftime(time(NULL), load_start)>=LOAD_TIMEOUT) break;
         }
 
-        // Po załadunku sprawdzamy sygnał
+        /* Jeśli łódź przestała być aktywna w trakcie załadunku – wyładuj i koniec */
         if (!boat1_active) {
             pthread_mutex_unlock(&mutex);
-            logMsg("[BOAT1] Sygnał w trakcie załadunku -> kończę.\n");
+            logMsg("[BOAT1] przerwanie w trakcie załadunku -> wyładunek.\n");
+            if (loaded>0) {
+                /* Pasażerowie, którzy zdążyli wsiąść – muszą zejść (bez rejsu) */
+                logMsg("[BOAT1] OUTBOUND -> wyładowuję %d pasażerów (sygnał/koniec).\n", loaded);
+                pthread_mutex_lock(&mutex);
+                start_outbound();
+                logMsg("[BOAT1] Pasażerowie zeszli.\n");
+                end_outbound();
+                pthread_mutex_unlock(&mutex);
+            }
             break;
         }
 
-        // **TU** ZABEZPIECZENIE PRZED PUSTYM REJSEM
+        /* Jeśli nikt nie wsiadł, to czekamy krótką chwilę i spróbujemy ponownie */
         if (loaded == 0) {
-            // nikt nie wsiadł – nie płyń
             pthread_mutex_unlock(&mutex);
-            logMsg("[BOAT1] Brak pasażerów -> czekam.\n");
-            continue; 
+            usleep(50000);
+            continue;
         }
 
-        // czekamy, aż pomost się zwolni
-        while (pomost_state==INBOUND || pomost_count>0) {
+        /* czekamy, aż pomost się opróżni (INBOUND->FREE) przed wypłynięciem */
+        while ((pomost_state==INBOUND || pomost_count>0) && boat1_active) {
             pthread_cond_wait(&cond_pomost_free, &mutex);
-            if (!boat1_active) break;
         }
         if (!boat1_active) {
             pthread_mutex_unlock(&mutex);
-            logMsg("[BOAT1] Sygnał -> rezygnuję z wypłynięcia.\n");
+            logMsg("[BOAT1] przerwanie przed wypłynięciem -> wyładunek.\n");
+            if (loaded>0) {
+                /* Wyładuj pasażerów */
+                pthread_mutex_lock(&mutex);
+                start_outbound();
+                logMsg("[BOAT1] Pasażerowie zeszli.\n");
+                end_outbound();
+                pthread_mutex_unlock(&mutex);
+            }
             break;
         }
 
-        boat1_inrejs = 1;
+        /* Sprawdzamy, czy mamy dość czasu na rejs */
+        time_t now = time(NULL);
+        if (now + T1 > end_time) {
+            /* Brak czasu na rejs – wyładuj i koniec */
+            logMsg("[BOAT1] Brakuje czasu na nowy rejs -> nie wypływamy.\n");
+            if (loaded > 0) {
+                logMsg("[BOAT1] OUTBOUND (bez rejsu) -> wyładowuję %d pasażerów.\n", loaded);
+                start_outbound();
+                logMsg("[BOAT1] Pasażerowie wysiedli.\n");
+                end_outbound();
+            }
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+
+        /* Wypływamy */
+        boat1_inrejs=1;
         logMsg("[BOAT1] Wypływam z %d pasażerami.\n", loaded);
         pthread_mutex_unlock(&mutex);
 
+        /* Rejs T1 sekund */
         sleep(T1);
 
+        /* Wracamy do portu – wyładunek */
         pthread_mutex_lock(&mutex);
-        boat1_inrejs = 0;
+        boat1_inrejs=0;
         logMsg("[BOAT1] Rejs zakończony -> OUTBOUND.\n");
         start_outbound();
         logMsg("[BOAT1] Pasażerowie wysiedli.\n");
         end_outbound();
+
+        /* Jeśli łódź została wyłączona (sygnał) w trakcie rejsu – to już nie pływamy dalej */
         if (!boat1_active) {
-            logMsg("[BOAT1] Sygnał w trakcie rejsu -> koniec pracy.\n");
             pthread_mutex_unlock(&mutex);
+            logMsg("[BOAT1] przerwanie po zakończeniu rejsu.\n");
             break;
         }
-        pthread_mutex_unlock(&mutex);
 
-        usleep(200000);
+        pthread_mutex_unlock(&mutex);
+        usleep(50000);
     }
 
-    logMsg("[BOAT1] Wyłączam wątek.\n");
+    logMsg("[BOAT1] Koniec wątku.\n");
     return NULL;
 }
 
-/* ---------------- BOAT2 THREAD ---------------- */
+/* Wątek łodzi2 – analogicznie do łodzi1 */
 void *boat2_thread(void *arg)
 {
-    logMsg("[BOAT2] Start wątku - automatyczny, pomost K=%d.\n", K);
+    logMsg("[BOAT2] Start wątku (max=%d, T2=%ds).\n", N2, T2);
 
     while (1) {
         pthread_mutex_lock(&mutex);
+
         if (!boat2_active) {
             pthread_mutex_unlock(&mutex);
-            logMsg("[BOAT2] Kończę (boat2_active=0) w przystani.\n");
+            logMsg("[BOAT2] boat2_active=0 -> kończę.\n");
             break;
         }
 
-        if (isEmpty(&queueBoat2)) {
+        if (isEmpty(&queueBoat2_skip) && isEmpty(&queueBoat2)) {
             pthread_mutex_unlock(&mutex);
-            usleep(1000000);
+            usleep(50000);
             continue;
         }
 
-        logMsg("[BOAT2] Załadunek (INBOUND) do %d pasażerów.\n", N2);
-        int loaded=0;
-        time_t tstart=time(NULL);
+        logMsg("[BOAT2] Załadunek...\n");
+        int loaded = 0;
+        time_t load_start = time(NULL);
 
         while (loaded < N2 && boat2_active) {
-            if (isEmpty(&queueBoat2)) {
-                pthread_mutex_unlock(&mutex);
-                usleep(300000);
-                pthread_mutex_lock(&mutex);
-
-                if (difftime(time(NULL), tstart)>=LOAD_TIMEOUT) break;
-                if (!boat2_active) break;
+            PassQueue *q = NULL;
+            if (!isEmpty(&queueBoat2_skip)) {
+                q = &queueBoat2_skip;
+            } else if (!isEmpty(&queueBoat2)) {
+                q = &queueBoat2;
             } else {
-                PassengerItem p = queueBoat2.items[queueBoat2.front];
-                if (pomost_state==FREE || pomost_state==INBOUND) {
-                    if (pomost_count < K) {
-                        dequeue(&queueBoat2);
-                        if (enter_pomost()) {
-                            leave_pomost_in();
-                            loaded++;
-                            logMsg("[BOAT2] Pasażer %d(disc=%d) wsiada (%d/%d)\n",
-                                   p.pid, p.disc, loaded, N2);
-                        }
-                    } else {
-                        pthread_mutex_unlock(&mutex);
-                        usleep(200000);
-                        pthread_mutex_lock(&mutex);
+                /* brak pasażerów – czekamy do LOAD_TIMEOUT */
+                pthread_mutex_unlock(&mutex);
+                usleep(50000);
+                pthread_mutex_lock(&mutex);
+                if (!boat2_active) break;
+                if (difftime(time(NULL), load_start)>=LOAD_TIMEOUT) break;
+                continue;
+            }
+
+            PassengerItem p = q->items[q->front];
+            if (pomost_state==FREE || pomost_state==INBOUND) {
+                if (pomost_count < K) {
+                    dequeue(q);
+                    if (enter_pomost()) {
+                        leave_pomost_in();
+                        loaded++;
+                        logMsg("[BOAT2] Pasażer %d(disc=%d) wsiada (%d/%d)\n",
+                               p.pid, p.disc, loaded, N2);
                     }
                 } else {
                     pthread_mutex_unlock(&mutex);
-                    usleep(200000);
+                    usleep(50000);
                     pthread_mutex_lock(&mutex);
                 }
+            } else {
+                pthread_mutex_unlock(&mutex);
+                usleep(50000);
+                pthread_mutex_lock(&mutex);
             }
 
             if (!boat2_active) break;
             if (loaded==N2) break;
-            if (difftime(time(NULL), tstart)>=LOAD_TIMEOUT) break;
+            if (difftime(time(NULL), load_start)>=LOAD_TIMEOUT) break;
         }
 
         if (!boat2_active) {
             pthread_mutex_unlock(&mutex);
-            logMsg("[BOAT2] Sygnał w trakcie załadunku -> kończę.\n");
+            logMsg("[BOAT2] przerwanie w trakcie załadunku -> wyładunek.\n");
+            if (loaded>0) {
+                logMsg("[BOAT2] OUTBOUND -> wyładowuję %d pasażerów (sygnał/koniec).\n", loaded);
+                pthread_mutex_lock(&mutex);
+                start_outbound();
+                logMsg("[BOAT2] Pasażerowie zeszli.\n");
+                end_outbound();
+                pthread_mutex_unlock(&mutex);
+            }
             break;
         }
 
-        // **ZABEZPIECZENIE** - nie płyń pusto
         if (loaded==0) {
             pthread_mutex_unlock(&mutex);
-            logMsg("[BOAT2] Brak pasażerów -> czekam.\n");
+            usleep(50000);
             continue;
         }
 
-        while (pomost_state==INBOUND || pomost_count>0) {
+        while ((pomost_state==INBOUND || pomost_count>0) && boat2_active) {
             pthread_cond_wait(&cond_pomost_free, &mutex);
-            if (!boat2_active) break;
         }
         if (!boat2_active) {
             pthread_mutex_unlock(&mutex);
-            logMsg("[BOAT2] Rezygnuję z wypłynięcia.\n");
+            logMsg("[BOAT2] przerwanie przed wypłynięciem -> wyładunek.\n");
+            if (loaded>0) {
+                pthread_mutex_lock(&mutex);
+                start_outbound();
+                logMsg("[BOAT2] Pasażerowie zeszli.\n");
+                end_outbound();
+                pthread_mutex_unlock(&mutex);
+            }
             break;
         }
 
-        boat2_inrejs = 1;
+        time_t now = time(NULL);
+        if (now + T2 > end_time) {
+            logMsg("[BOAT2] Brakuje czasu na nowy rejs -> nie wypływamy.\n");
+            if (loaded>0) {
+                logMsg("[BOAT2] OUTBOUND (bez rejsu) -> wyładowuję %d pasażerów.\n", loaded);
+                start_outbound();
+                logMsg("[BOAT2] Pasażerowie wysiedli.\n");
+                end_outbound();
+            }
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+
+        boat2_inrejs=1;
         logMsg("[BOAT2] Wypływam z %d pasażerami.\n", loaded);
         pthread_mutex_unlock(&mutex);
 
         sleep(T2);
 
         pthread_mutex_lock(&mutex);
-        boat2_inrejs = 0;
+        boat2_inrejs=0;
         logMsg("[BOAT2] Rejs zakończony -> OUTBOUND.\n");
         start_outbound();
         logMsg("[BOAT2] Pasażerowie wysiedli.\n");
         end_outbound();
+
         if (!boat2_active) {
-            logMsg("[BOAT2] Sygnał w trakcie rejsu -> koniec pracy.\n");
             pthread_mutex_unlock(&mutex);
+            logMsg("[BOAT2] przerwanie po zakończeniu rejsu.\n");
             break;
         }
-        pthread_mutex_unlock(&mutex);
 
-        usleep(200000);
+        pthread_mutex_unlock(&mutex);
+        usleep(50000);
     }
 
-    logMsg("[BOAT2] Wyłączam wątek.\n");
+    logMsg("[BOAT2] Koniec wątku.\n");
     return NULL;
 }
 
-/* ---- MAIN ---- */
-int main(void)
+/* main */
+int main(int argc, char *argv[])
 {
-    // Otwieramy plik do logowania:
+    setbuf(stdout, NULL);
+
+    if (argc < 2) {
+        fprintf(stderr, "[STERNIK] Użycie: %s <timeout_s>\n", argv[0]);
+        return 1;
+    }
+    int timeout_value = atoi(argv[1]);
+    start_time = time(NULL);
+    end_time   = start_time + timeout_value;
+
+    /* Otwieramy plik logów (opcjonalnie) */
     sternikLog = fopen("sternik.log", "w");
     if (!sternikLog) {
-        perror("[STERNIK] Nie mogę otworzyć sternik.log");
-        exit(1);
+        perror("[STERNIK] Nie można otworzyć sternik.log (logi tylko stdout)");
     }
 
-    // Rejestracja sygnałów
+    /* Rejestracja sygnałów policjanta (SIGUSR1 -> łódź1, SIGUSR2 -> łódź2) */
     struct sigaction sa1, sa2;
     memset(&sa1, 0, sizeof(sa1));
     sa1.sa_handler = sigusr1_handler;
@@ -404,94 +521,132 @@ int main(void)
     sa2.sa_handler = sigusr2_handler;
     sigaction(SIGUSR2, &sa2, NULL);
 
-    // Inicjalizacja
+    /* Inicjalizacja kolejek */
     initQueue(&queueBoat1);
+    initQueue(&queueBoat1_skip);
     initQueue(&queueBoat2);
+    initQueue(&queueBoat2_skip);
 
     pomost_state = FREE;
     pomost_count = 0;
 
-    // Tworzymy FIFO
+    /* Tworzymy FIFO do komunikacji z orchestrator (komendy) */
     unlink("fifo_sternik_in");
     mkfifo("fifo_sternik_in", 0666);
     int fd_in = open("fifo_sternik_in", O_RDONLY | O_NONBLOCK);
-    if (fd_in < 0) {
+    if (fd_in<0) {
         perror("[STERNIK] open fifo_sternik_in");
-        fprintf(sternikLog, "[STERNIK] Błąd otwarcia fifo_sternik_in!\n");
-        fclose(sternikLog);
+        if (sternikLog) fclose(sternikLog);
         return 1;
     }
 
-    logMsg("[STERNIK] Start - K=%d, automatyczne rejsy.\n", K);
-    logMsg("[STERNIK] SIGUSR1->boat1, SIGUSR2->boat2.\n");
-
-    // Wątki łodzi
+    /* Wątki łodzi */
     pthread_t tid_b1, tid_b2;
     pthread_create(&tid_b1, NULL, boat1_thread, NULL);
     pthread_create(&tid_b2, NULL, boat2_thread, NULL);
 
-    // Pętla odbioru komend
+    logMsg("[STERNIK] Start sternika (timeout=%d s).\n", timeout_value);
+
+    /* Pętla odbierająca komendy z FIFO */
     char buf[256];
     while (1) {
         ssize_t n = read(fd_in, buf, sizeof(buf)-1);
         if (n>0) {
             buf[n] = '\0';
-            if (strncmp(buf, "QUEUE", 5)==0) {
+            if (strncmp(buf, "QUEUE_SKIP", 10)==0) {
+                int pid=0, bno=0;
+                sscanf(buf, "QUEUE_SKIP %d %d", &pid, &bno);
+                pthread_mutex_lock(&mutex);
+                PassengerItem pi = { pid, 50 }; // disc=50 (powtórka)
+                if (bno==1 && boat1_active) {
+                    if (!isFull(&queueBoat1_skip)) {
+                        enqueue(&queueBoat1_skip, pi);
+                        logMsg("[STERNIK] [SKIP] Pasażer %d -> queueBoat1_skip\n", pid);
+                    } else {
+                        logMsg("[STERNIK] queueBoat1_skip full -> odrzucono %d\n", pid);
+                    }
+                }
+                else if (bno==2 && boat2_active) {
+                    if (!isFull(&queueBoat2_skip)) {
+                        enqueue(&queueBoat2_skip, pi);
+                        logMsg("[STERNIK] [SKIP] Pasażer %d -> queueBoat2_skip\n", pid);
+                    } else {
+                        logMsg("[STERNIK] queueBoat2_skip full -> odrzucono %d\n", pid);
+                    }
+                }
+                else {
+                    logMsg("[STERNIK] Łódź %d nieaktywna->odrzucono %d\n", bno, pid);
+                }
+                pthread_mutex_unlock(&mutex);
+            }
+            else if (strncmp(buf, "QUEUE", 5)==0) {
                 int pid=0, bno=0, disc=0;
                 sscanf(buf, "QUEUE %d %d %d", &pid, &bno, &disc);
-
                 pthread_mutex_lock(&mutex);
                 PassengerItem pi = { pid, disc };
                 if (bno==1 && boat1_active) {
                     if (!isFull(&queueBoat1)) {
                         enqueue(&queueBoat1, pi);
-                        logMsg("[STERNIK] Pasażer %d -> queueBoat1 (size=%d)\n", pid, queueBoat1.count);
+                        logMsg("[STERNIK] Pasażer %d -> queueBoat1\n", pid);
                     } else {
-                        logMsg("[STERNIK] queueBoat1 full -> odrzucono %d\n", pid);
+                        logMsg("[STERNIK] queueBoat1 full->odrzucono %d\n", pid);
                     }
                 }
                 else if (bno==2 && boat2_active) {
                     if (!isFull(&queueBoat2)) {
                         enqueue(&queueBoat2, pi);
-                        logMsg("[STERNIK] Pasażer %d -> queueBoat2 (size=%d)\n", pid, queueBoat2.count);
+                        logMsg("[STERNIK] Pasażer %d -> queueBoat2\n", pid);
                     } else {
-                        logMsg("[STERNIK] queueBoat2 full -> odrzucono %d\n", pid);
+                        logMsg("[STERNIK] queueBoat2 full->odrzucono %d\n", pid);
                     }
                 }
                 else {
-                    logMsg("[STERNIK] Łódź %d nieaktywna - odrzucono pasażera %d\n", bno, pid);
+                    logMsg("[STERNIK] Łódź %d nieaktywna->odrzucono %d\n", bno, pid);
                 }
                 pthread_mutex_unlock(&mutex);
             }
             else if (strncmp(buf, "INFO", 4)==0) {
                 pthread_mutex_lock(&mutex);
                 const char *st = (pomost_state==FREE) ? "FREE"
-                                : (pomost_state==INBOUND) ? "INBOUND" : "OUTBOUND";
-                logMsg("[INFO] boat1_active=%d, boat2_active=%d, queue1=%d, queue2=%d, pomost_count=%d, state=%s\n",
-                       boat1_active, boat2_active, queueBoat1.count, queueBoat2.count,
+                              : (pomost_state==INBOUND) ? "INBOUND" : "OUTBOUND";
+                logMsg("[INFO] boat1_active=%d(inrejs=%d), boat2_active=%d(inrejs=%d), q1=%d, q1_skip=%d, q2=%d, q2_skip=%d, pomost_count=%d, state=%s\n",
+                       boat1_active, boat1_inrejs,
+                       boat2_active, boat2_inrejs,
+                       queueBoat1.count, queueBoat1_skip.count,
+                       queueBoat2.count, queueBoat2_skip.count,
                        pomost_count, st);
                 pthread_mutex_unlock(&mutex);
             }
             else if (strncmp(buf, "QUIT", 4)==0) {
-                logMsg("[STERNIK] Otrzymano QUIT, kończę.\n");
+                logMsg("[STERNIK] Otrzymano QUIT -> kończę.\n");
                 break;
             }
         }
-        usleep(100000);
+
+        /* Sprawdzamy, czy obie łodzie nieaktywne -> koniec automatyczny */
+        pthread_mutex_lock(&mutex);
+        if (!boat1_active && !boat2_active) {
+            pthread_mutex_unlock(&mutex);
+            logMsg("[STERNIK] Obie łodzie nieaktywne -> kończę sternika.\n");
+            break;
+        }
+        pthread_mutex_unlock(&mutex);
+
+        usleep(50000);
     }
 
-    // Kończymy
+    /* Kończymy łodzie (jeśli jeszcze żyją) */
     pthread_mutex_lock(&mutex);
-    boat1_active = 0;
-    boat2_active = 0;
+    boat1_active=0;
+    boat2_active=0;
     pthread_mutex_unlock(&mutex);
 
     pthread_join(tid_b1, NULL);
     pthread_join(tid_b2, NULL);
 
     close(fd_in);
-    logMsg("[STERNIK] Koniec.\n");
+    logMsg("[STERNIK] Zakończyłem działanie.\n");
 
-    fclose(sternikLog);
+    if (sternikLog) fclose(sternikLog);
     return 0;
 }
