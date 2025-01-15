@@ -1,0 +1,119 @@
+[STERNIK] Start - K=0, automatyczne rejsy.
+[STERNIK] SIGUSR1->boat1, SIGUSR2->boat2.
+[BOAT1] Start wątku - automatyczny, pomost K=0.
+[BOAT2] Start wątku - automatyczny, pomost K=0.
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[BOAT1] Załadunek (INBOUND) - czekam do 1 pasażerów.
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT2] Załadunek (INBOUND) do 1 pasażerów.
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Wypływam z -1 pasażerami.
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[BOAT1] Rejs zakończony -> OUTBOUND.
+[BOAT1] Pasażerowie wysiedli.
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[BOAT2] Wypływam z 1736902474 pasażerami.
+[BOAT1] Załadunek (INBOUND) - czekam do 1 pasażerów.
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Wypływam z -1 pasażerami.
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[BOAT1] Rejs zakończony -> OUTBOUND.
+[BOAT1] Pasażerowie wysiedli.
+[BOAT1] Załadunek (INBOUND) - czekam do 1 pasażerów.
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Wypływam z -1 pasażerami.
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[BOAT2] Rejs zakończony -> OUTBOUND.
+[BOAT2] Pasażerowie wysiedli.
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[BOAT2] Załadunek (INBOUND) do 1 pasażerów.
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT2] Wypływam z -1 pasażerami.
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[STERNIK] Pasażer 0 -> queueBoat2 (size=10)
+[BOAT1] Rejs zakończony -> OUTBOUND.
+[BOAT1] Pasażerowie wysiedli.
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[BOAT1] Załadunek (INBOUND) - czekam do 1 pasażerów.
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Wypływam z -1 pasażerami.
+[STERNIK] Pasażer 0 -> queueBoat1 (size=10)
+[BOAT2] Rejs zakończony -> OUTBOUND.
+[BOAT2] Pasażerowie wysiedli.
+[BOAT2] Załadunek (INBOUND) do 1 pasażerów.
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT2] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Rejs zakończony -> OUTBOUND.
+[BOAT1] Pasażerowie wysiedli.
+[BOAT1] Załadunek (INBOUND) - czekam do 1 pasażerów.
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Pasażer 0(disc=0) wsiada (0/0)
+[BOAT1] Wypływam z -1 pasażerami.
+[BOAT1] (SIGUSR1) -> w rejsie, dokończę i koniec.
+[BOAT1] Rejs zakończony -> OUTBOUND.
+[BOAT1] Pasażerowie wysiedli.
+[BOAT1] Sygnał w trakcie rejsu -> koniec pracy.
+[BOAT1] Wyłączam wątek.
+[BOAT2] Wypływam z 1736902488 pasażerami.
+[BOAT2] (SIGUSR2) -> w rejsie, dokończę i koniec.
+[BOAT2] Rejs zakończony -> OUTBOUND.
+[BOAT2] Pasażerowie wysiedli.
+[BOAT2] Sygnał w trakcie rejsu -> koniec pracy.
+[BOAT2] Wyłączam wątek.
