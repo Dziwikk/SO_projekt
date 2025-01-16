@@ -28,12 +28,12 @@ int main(int argc, char *argv[])
 
     /* Po kilku sekundach -> SIGUSR1 (zabrania łodzi1 pływać dalej) */
     sleep((rand()%5)+2);
-    printf("[POLICJANT] SIGUSR1 -> łódź1\n");
+    printf("\033[1;31m[POLICJANT] SIGUSR1 -> łódź1\033[0m\n");
     kill(pid_sternik, SIGUSR1);
 
     /* Po kolejnych kilku sekundach -> SIGUSR2 (zabrania łodzi2 pływać dalej) */
     sleep((rand()%5)+2);
-    printf("[POLICJANT] SIGUSR2 -> łódź2\n");
+    printf("\033[1;31m[POLICJANT] SIGUSR2 -> łódź2\033[0m\n");
     kill(pid_sternik, SIGUSR2);
 
     printf("[POLICJANT] Koniec.\n");

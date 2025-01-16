@@ -144,110 +144,154 @@ static int groupTarget[MAX_GROUP];  /* docelowo 2, jeśli w ogóle group>0 */
 
 void *boat1_thread(void *arg)
 {
-    logMsg("[BOAT1] start max=%d T1=%ds.\n",N1,T1);
-    while(1){
+    logMsg("[BOAT1] start max=%d T1=%ds.\n", N1, T1);
+
+    while (1) {
+        /* Blokujemy mutex, sprawdzamy aktywność łodzi */
         pthread_mutex_lock(&mutex);
-        if(!boat1_active){
+        if (!boat1_active) {
             pthread_mutex_unlock(&mutex);
-            logMsg("[BOAT1] kończę.\n");
+            logMsg("[BOAT1] boat1_active=0, koniec.\n");
             break;
         }
-        /* ... identyczna logika jak w oryginale ... */
-        /* -- POMIJAMY: boat1 nie obsługuje logicznie group? 
-           ewentualnie docinamy kod tak, by boat1 
-           nie musiał nic specjalnego z group. 
-        */
-        if(isEmpty(&queueBoat1_skip) && isEmpty(&queueBoat1)){
+
+        /* Sprawdzamy, czy kolejki skip i normalna są puste */
+        if (isEmpty(&queueBoat1_skip) && isEmpty(&queueBoat1)) {
             pthread_mutex_unlock(&mutex);
             usleep(50000);
             continue;
         }
-        logMsg("[BOAT1] Załadunek...\n");
-        int loaded=0;
-        time_t load_start=time(NULL);
 
-        while(loaded<N1 && boat1_active){
-            PassQueue *q=NULL;
-            if(!isEmpty(&queueBoat1_skip)) q=&queueBoat1_skip;
-            else if(!isEmpty(&queueBoat1)) q=&queueBoat1;
+        logMsg("[BOAT1] Załadunek...\n");
+        int loaded = 0;
+        time_t load_start = time(NULL);
+
+        /* Tymczasowa lista pasażerów do rejsu (max N1) */
+        PassengerItem rejsList[N1];
+        int rejsCount = 0;
+
+        /* Pętla załadunku do momentu osiągnięcia N1 lub upłynięcia LOAD_TIMEOUT */
+        while (rejsCount < N1 && boat1_active) {
+            PassQueue *q = NULL;
+
+            /* Jeśli coś jest w skip, bierzemy skip w pierwszej kolejności */
+            if (!isEmpty(&queueBoat1_skip)) {
+                q = &queueBoat1_skip;
+            } 
+            /* W przeciwnym razie bierzemy normalną kolejkę */
+            else if (!isEmpty(&queueBoat1)) {
+                q = &queueBoat1;
+            } 
             else {
+                /* Brak pasażerów w obu kolejkach → odblokowujemy mutex na chwilę */
                 pthread_mutex_unlock(&mutex);
                 usleep(50000);
                 pthread_mutex_lock(&mutex);
-                if(!boat1_active) break;
-                if(difftime(time(NULL),load_start)>=LOAD_TIMEOUT) break;
+
+                /* Sprawdzamy, czy łódź wciąż aktywna */
+                if (!boat1_active) break;
+                /* Sprawdzamy czas załadunku */
+                if (difftime(time(NULL), load_start) >= LOAD_TIMEOUT) break;
                 continue;
             }
-            PassengerItem p= q->items[q->front];
-            if(pomost_state==FREE || pomost_state==INBOUND){
-                if(pomost_count<K){
+
+            /* Mamy kolejkę q -> bierzemy pierwszy pasażer i próbujemy wsiąść */
+            PassengerItem p = q->items[q->front];
+
+            if (pomost_state == FREE || pomost_state == INBOUND) {
+                if (pomost_count < K) {
+                    /* Zdejmujemy pasażera z kolejki */
                     dequeue(q);
-                    if(enter_pomost()){
+                    /* Wchodzimy na pomost (o ile jest miejsce i inbound) */
+                    if (enter_pomost()) {
+                        /* Już zajął pomost => zwalniamy go natychmiast (symulacja) */
                         leave_pomost_in();
+                        /* Dodajemy do rejsList */
+                        rejsList[rejsCount++] = p;
                         loaded++;
-                        logMsg("[BOAT1] pasażer %d(disc=%d) wsiada (%d/%d)\n",
-                               p.pid,p.disc,loaded,N1);
+                        logMsg("\033[1;36m[BOAT1] pasażer %d(disc=%d) wsiada (%d/%d)\033[0m\n",
+                               p.pid, p.disc, loaded, N1);
                     }
                 } else {
+                    /* Pomost pełny */
                     pthread_mutex_unlock(&mutex);
                     usleep(50000);
                     pthread_mutex_lock(&mutex);
                 }
             } else {
+                /* Pomost jest OUTBOUND, więc czekamy aż się zwolni */
                 pthread_mutex_unlock(&mutex);
                 usleep(50000);
                 pthread_mutex_lock(&mutex);
             }
-            if(!boat1_active) break;
-            if(loaded==N1) break;
-            if(difftime(time(NULL),load_start)>=LOAD_TIMEOUT) break;
+
+            /* Sprawdzamy warunki zakończenia pętli */
+            if (!boat1_active) break;
+            if (loaded == N1) break;
+            if (difftime(time(NULL), load_start) >= LOAD_TIMEOUT) break;
         }
-        if(!boat1_active){
+
+        /* Jeżeli łódź przestaje być aktywna w trakcie załadunku, kończymy */
+        if (!boat1_active) {
             pthread_mutex_unlock(&mutex);
             logMsg("[BOAT1] sygnał w trakcie załadunku.\n");
             break;
         }
-        if(loaded==0){
+        /* Jeżeli nikt nie wsiadł, czekamy chwilę i powtarzamy */
+        if (loaded == 0) {
             pthread_mutex_unlock(&mutex);
             usleep(50000);
             continue;
         }
-        while((pomost_state==INBOUND|| pomost_count>0)&&boat1_active){
-            pthread_cond_wait(&cond_pomost_free,&mutex);
+
+        /* Czekamy, aż pomost się zwolni (nikt nie wchodzi) przed wypłynięciem */
+        while ((pomost_state == INBOUND || pomost_count > 0) && boat1_active) {
+            pthread_cond_wait(&cond_pomost_free, &mutex);
         }
-        if(!boat1_active){
+        if (!boat1_active) {
             pthread_mutex_unlock(&mutex);
             logMsg("[BOAT1] przerwanie przed rejs.\n");
             break;
         }
-        time_t now=time(NULL);
-        if(now+T1> end_time){
+
+        /* Sprawdzamy, czy mamy jeszcze czas na rejs */
+        time_t now = time(NULL);
+        if (now + T1 > end_time) {
             logMsg("[BOAT1] brak czasu na rejs.\n");
             pthread_mutex_unlock(&mutex);
             break;
         }
-        boat1_inrejs=1;
-        logMsg("[BOAT1] Wypływam z %d.\n",loaded);
+
+        /* Wszystko ok, wypływamy */
+        boat1_inrejs = 1;
+        logMsg("[BOAT1] Wypływam z %d pasażerami.\n", rejsCount);
         pthread_mutex_unlock(&mutex);
+
+        /* Symulacja rejsu */
         sleep(T1);
 
+        /* Powrót z rejsu → OUTBOUND (wyładunek) */
         pthread_mutex_lock(&mutex);
-        boat1_inrejs=0;
-        logMsg("[BOAT1] Rejs koniec->outbound.\n");
+        boat1_inrejs = 0;
+        logMsg("[BOAT1] Rejs koniec -> OUTBOUND.\n");
         start_outbound();
         logMsg("[BOAT1] pasażerowie wyszli.\n");
         end_outbound();
-        if(!boat1_active){
+
+        if (!boat1_active) {
             pthread_mutex_unlock(&mutex);
             logMsg("[BOAT1] sygnał w trakcie wyład.\n");
             break;
         }
         pthread_mutex_unlock(&mutex);
+
         usleep(50000);
     }
+
     logMsg("[BOAT1] koniec wątku.\n");
     return NULL;
 }
+
 
 /* BOAT2: 
    - trzymamy groupCount[] i groupTarget[], 
@@ -310,7 +354,7 @@ void *boat2_thread(void *arg)
                         groupCount[p.group]++; 
                         rejsList[rejsCount++]=p;
                         loaded++;
-                        logMsg("[BOAT2] pasażer %d(disc=%d,grp=%d) wsiada (%d/%d)\n",
+                        logMsg("\033[1;36m[BOAT2] pasażer %d(disc=%d,grp=%d) wsiada (%d/%d)\033[0m\n",
                                p.pid,p.disc,p.group,loaded,N2);
                     }
                 } else {
