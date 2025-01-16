@@ -1,10 +1,5 @@
 /*******************************************************
- * File: sternik.c
- *
- * Każdy pasażer ma: pid, disc, group
- * - group=0 => brak grupy
- * - group>0 => 2-osobowa rodzina (dziecko+rodzic) => 
- *   ładujemy w tym samym rejsie łodzi2
+  File: sternik.c
  ******************************************************/
 
 #include <stdio.h>

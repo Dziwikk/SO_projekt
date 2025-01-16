@@ -1,47 +1,251 @@
 [STERNIK] start (timeout=0).
-[BOAT1] start max=659146830 T1=0s.
-[BOAT2] start max=659146830 T2=0s.
-[STERNIK] pass 0->boat1 disc=10
-[BOAT1] Załadunek...
-[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[STERNIK] pass 0->boat1 disc=10
-[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[STERNIK] pass 0->boat1 disc=10
-[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[STERNIK] pass 0->boat1 disc=10
-[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[BOAT1] Wypływam z 1736986276.
-[STERNIK] pass 0->boat1 disc=10
-[STERNIK] pass 0->boat1 disc=10
-[STERNIK] pass 0->boat1 disc=10
+[BOAT2] start max=-1893087154 T2=0s.
+[BOAT1] start max=-1893087154 T1=0s.
 [STERNIK] pass 0->boat2 disc=10
 [BOAT2] Załadunek...
-[BOAT2] pasażer 0(disc=0,grp=1) wsiada (164706048/0)
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (-210223616/0)
 [STERNIK] pass 0->boat1 disc=10
-[STERNIK] pass 0->boat1 disc=10
-[STERNIK] pass 0->boat1 disc=10
-[BOAT2] Wypływam z 1736986281 pasażerami.
-[BOAT1] Rejs koniec->outbound.
-[BOAT1] pasażerowie wyszli.
 [BOAT1] Załadunek...
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat1 disc=10
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat1 disc=10
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[BOAT1] Wypływam z 1736986280.
-[STERNIK] pass 0->boat2 disc=10
-[STERNIK] pass 0->boat2 disc=10
+[BOAT2] Wypływam z 1737059266 pasażerami.
+[BOAT1] Wypływam z 1737059266.
 [STERNIK] skip pass 1 -> queueBoat1_skip.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
 [BOAT1] Rejs koniec->outbound.
 [BOAT1] pasażerowie wyszli.
 [BOAT1] Załadunek...
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[STERNIK] pass 0->boat1 disc=10
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059270.
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[STERNIK] skip pass 1 -> queueBoat2_skip.
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[BOAT2] Wypływam z 1737059273 pasażerami.
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
 [STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Wypływam z 1737059276.
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
 [STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Wypływam z 1737059280 pasażerami.
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059280.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059284.
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[BOAT2] Wypływam z 1737059287 pasażerami.
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] skip pass 1 -> queueBoat2_skip.
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Wypływam z 1737059290.
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=4) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=5) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=6) wsiada (1/0)
+[BOAT2] Wypływam z 1737059292 pasażerami.
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059295.
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=4) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=5) wsiada (1/0)
+[BOAT2] Wypływam z 1737059299 pasażerami.
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Wypływam z 1737059301.
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=4) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Wypływam z 1737059306 pasażerami.
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059307.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=4) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059311.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=5) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Wypływam z 1737059313 pasażerami.
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059315.
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Wypływam z 1737059320 pasażerami.
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059319.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] skip pass 1 -> queueBoat2_skip.
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
 [BOAT2] Rejs koniec -> OUTBOUND.
 [BOAT2] pasażerowie wyszli.
@@ -49,12 +253,58 @@
 [BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
 [BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
 [BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[BOAT1] Wypływam z 1737059325.
 [STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 50->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=4) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Wypływam z 1737059327 pasażerami.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[BOAT1] Wypływam z 1736986285.
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059329.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
 [STERNIK] pass 0->boat1 disc=10
 [STERNIK] pass 0->boat1 disc=10
-[BOAT2] Wypływam z 1736986288 pasażerami.
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=4) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=5) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=6) wsiada (1/0)
+[BOAT2] Wypływam z 1737059333 pasażerami.
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059333.
 [STERNIK] skip pass 1 -> queueBoat1_skip.
 [BOAT1] Rejs koniec->outbound.
 [BOAT1] pasażerowie wyszli.
@@ -62,18 +312,196 @@
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[STERNIK] pass 0->boat2 disc=10
-[STERNIK] pass 0->boat1 disc=10
 [BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[STERNIK] pass 0->boat1 disc=10
-[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
-[BOAT1] Wypływam z 1736986290.
-[STERNIK] pass 0->boat1 disc=10
-[STERNIK] pass 0->boat2 disc=10
 [STERNIK] pass 0->boat2 disc=10
 [BOAT2] Rejs koniec -> OUTBOUND.
 [BOAT2] pasażerowie wyszli.
 [BOAT2] Załadunek...
 [BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
 [BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[STERNIK] pass 0->boat2 disc=10
 [BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059338.
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=4) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Wypływam z 1737059341 pasażerami.
+[STERNIK] skip pass 1 -> queueBoat1_skip.
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] skip pass 1 -> queueBoat2_skip.
+[BOAT1] Wypływam z 1737059344.
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] Wypływam z 1737059348 pasażerami.
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Wypływam z 1737059350.
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT2] Wypływam z 1737059355 pasażerami.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] skip pass 1 -> queueBoat2_skip.
+[BOAT1] Wypływam z 1737059356.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059360.
+[BOAT2] Wypływam z 1737059362 pasażerami.
+[STERNIK] skip pass 1 -> queueBoat1_skip.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 50->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Wypływam z 1737059366.
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=4) wsiada (1/0)
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=5) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=6) wsiada (1/0)
+[BOAT2] Wypływam z 1737059368 pasażerami.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059370.
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat2 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=4) wsiada (1/0)
+[BOAT2] pasażer 0(disc=0,grp=5) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT2] Wypływam z 1737059375 pasażerami.
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[STERNIK] pass 0->boat2 disc=10
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] Wypływam z 1737059374.
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] pass 0->boat1 disc=10
+[STERNIK] skip pass 1 -> queueBoat1_skip.
+[BOAT1] Rejs koniec->outbound.
+[BOAT1] pasażerowie wyszli.
+[BOAT1] Załadunek...
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT2] Rejs koniec -> OUTBOUND.
+[BOAT2] pasażerowie wyszli.
+[BOAT2] Załadunek...
+[BOAT2] pasażer 0(disc=0,grp=1) wsiada (1/0)
+[STERNIK] pass 0->boat1 disc=10
+[BOAT1] pasażer 0(disc=1667331187) wsiada (0/0)
+[BOAT1] brak czasu na rejs.
+[BOAT1] koniec wątku.
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=2) wsiada (1/0)
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=3) wsiada (1/0)
+[STERNIK] pass 0->boat2 disc=10
+[BOAT2] pasażer 0(disc=0,grp=4) wsiada (1/0)
+[BOAT2] brak czasu na rejs.
+[BOAT2] -1 pasażerów zeszło (koniec czasu).
+[BOAT2] koniec wątku.
+[STERNIK] pass 0->boat2 disc=10

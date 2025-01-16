@@ -1,10 +1,5 @@
 /*******************************************************
- * File: pasazer.c
- *
- * ./pasazer <id> <age> <group>
- * Komunikacja z kasjerem: BUY ...
- * Odbiera OK ... GROUP=...
- * Wysyła do sternika QUEUE(_SKIP) pid boat disc
+ File: pasazer.c
  ******************************************************/
 
 #include <stdio.h>

@@ -1,8 +1,5 @@
 /*******************************************************
- * File: kasjer.c
- *
- * BUY <pid> <age> <group>
- * Odpowiedź: OK pid BOAT=.. DISC=.. SKIP=.. GROUP=..
+ File: kasjer.c
  ******************************************************/
 
 #include <stdio.h>

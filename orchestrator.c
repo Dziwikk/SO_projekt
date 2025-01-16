@@ -1,15 +1,5 @@
 /*******************************************************
- * File: orchestrator.c
- *
- * Komendy z stdin:
- *   p -> uruchom policjanta
- *   q -> zakończ symulację
- *
- * Generator pasażerów:
- *   - część to pary dziecko (<15) + rodzic (>=18) 
- *     z tym samym group_id => boat=2 w kasjerze
- *   - część to normalni pojedynczy pasażerowie
- *   - część wraca (skip=1) - stary pid
+ File: orchestrator.c
  ******************************************************/
 
 #include <stdio.h>
@@ -35,9 +25,16 @@
 #define FIFO_KASJER_IN   "fifo_kasjer_in"
 
 #define MAX_PASS 200
-#define TIMEOUT 60
+static int TIMEOUT;
 
 static volatile sig_atomic_t end_all = 0;
+
+/* Parametry sterujące generowaniem pasażerów */
+static int g_min_batch = 3;  /* minimalna liczba pasażerów (normal) w jednej turze */
+static int g_max_batch = 7;  /* maksymalna liczba pasażerów (normal) w jednej turze */
+
+static int total_generated = 0; /* licznik wygenerowanych pasażerów*/
+
 
 static pid_t pid_sternik=0;
 static pid_t pid_kasjer=0;
@@ -97,6 +94,7 @@ static void run_passenger(int pid, int age, int group)
         p_pass[pass_count++] = c;
         printf("[ORCH] Passenger pid=%d age=%d group=%d -> procPID=%d\n",
                pid, age, group, c);
+        total_generated++;
         usleep(200000);
     } else {
         perror("[ORCH] fork pass");
@@ -120,7 +118,7 @@ void *generator_func(void *arg)
         /* 4 scenariusze: dice=0->(dziecko+rodzic), dice=1->wraca,
            dice=2,3->normal passenger, ale w większej liczbie. */
         int dice = rand() % 4;
-
+        
         if (dice == 0) {
             /* para: dziecko + rodzic, group=unique_count+1000 */
             int grp = base_pid + used_count;
@@ -148,7 +146,7 @@ void *generator_func(void *arg)
 
         } else {
             /* normal passengers, ale od razu 3..7 zamiast jednego */
-            int how_many = rand() % 5 + 3;  // 3..7
+            int how_many = rand() % g_max_batch + g_min_batch;  // 3..7
             for (int i = 0; i < how_many; i++) {
                 int new_pid = base_pid + used_count;
                 used_pids[used_count] = new_pid;
@@ -210,6 +208,8 @@ void end_simulation(void)
     generator_running = 0;  // jeśli mamy wątek generatora pasażerów
 
     printf("[ORCH] end_simulation() -> sprawdź, QUIT, kill -TERM, kill -9...\n");
+    printf("[ORCH] W sumie wygenerowano %d pasażerów.\n", total_generated);
+
 
     /* --- 0. Sprawdzamy, czy policjant, pasażerowie, kasjer i sternik
             już się sami nie zamknęli (np. policjant zakończył się dawno).
@@ -392,7 +392,34 @@ static void start_policjant(void)
 /* main */
 int main(void)
 {
-    setbuf(stdout,NULL);
+        setbuf(stdout, NULL);
+
+    /* Zapytaj użytkownika o czas: */
+    int user_time = 0;
+    while (1) {
+        printf("[ORCH] Podaj czas symulacji (sekundy, >0): ");
+        fflush(stdout);
+
+        if (scanf("%d", &user_time) != 1) {
+            // błąd parsowania
+            while (getchar() != '\n'); // czyścimy buf
+            printf("[ORCH] Błędny format, spróbuj jeszcze raz.\n");
+            continue;
+        }
+        if (user_time <= 0) {
+            printf("[ORCH] Czas musi być > 0.\n");
+            continue;
+        }
+        break;
+    }
+
+    /* Przypisanie do zmiennej globalnej (w oryginale jest #define TIMEOUT 60),
+       ale tu zróbmy np.: */
+    TIMEOUT = user_time;  /* jeżeli TIMEOUT jest globalną zmienną int (nie #define). */
+
+    /* (Ewentualnie) wczytaj i wyrzuć resztę znaków ze stdin, 
+       aby pętla select() poniżej działała poprawnie: */
+    while (getchar() != '\n');
 
     cleanup_fifo();
     mkfifo(FIFO_STERNIK_IN,0666);
