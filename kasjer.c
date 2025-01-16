@@ -1,12 +1,8 @@
 /*******************************************************
  * File: kasjer.c
  *
- * Zasada:
- *   - "BUY <pid> <age>"
- *   - Dzieci <3 lat -> discount=100%
- *   - Dzieci <15 lub osoby >70 -> boat=2 (zależnie od Twojego projektu)
- *   - Drugi raz (traveled[pid]==1) -> skip=1, discount=50% (o ile nie ma jeszcze
- *     silniejszego powodu, np. <3 lat = 100%).
+ * BUY <pid> <age> <group>
+ * Odpowiedź: OK pid BOAT=.. DISC=.. SKIP=.. GROUP=..
  ******************************************************/
 
 #include <stdio.h>
@@ -18,101 +14,90 @@
 #include <sys/stat.h>
 
 #define MAX_PIDS 5000
-static int traveled[MAX_PIDS]; // 0 - pierwszy raz, 1 - już płynął
+static int traveled[MAX_PIDS];
 
 int main(void)
 {
-    /* Tworzymy FIFO (kasjer_in, kasjer_out) */
-    mkfifo("fifo_kasjer_in", 0666);
-    mkfifo("fifo_kasjer_out", 0666);
+    mkfifo("fifo_kasjer_in",0666);
+    mkfifo("fifo_kasjer_out",0666);
 
-    int fd_in = open("fifo_kasjer_in", O_RDONLY | O_NONBLOCK);
-    int fd_out = open("fifo_kasjer_out", O_WRONLY);
+    int fd_in = open("fifo_kasjer_in", O_RDONLY|O_NONBLOCK);
+    int fd_out= open("fifo_kasjer_out",O_WRONLY);
 
-    if (fd_in < 0 || fd_out < 0) {
-        perror("[KASJER] Błąd otwarcia FIFO");
+    if (fd_in<0 || fd_out<0) {
+        perror("[KASJER] open FIFO");
         return 1;
     }
-
-    for (int i = 0; i < MAX_PIDS; i++) {
-        traveled[i] = 0;
-    }
+    for (int i=0; i<MAX_PIDS; i++) traveled[i]=0;
 
     printf("[KASJER] Start.\n");
+    setbuf(stdout,NULL);
 
     char buf[256];
     while (1) {
-        ssize_t n = read(fd_in, buf, sizeof(buf)-1);
-        if (n < 0) {
-            if (errno == EAGAIN || errno == EINTR) {
+        ssize_t n= read(fd_in, buf, sizeof(buf)-1);
+        if (n<0) {
+            if (errno==EAGAIN || errno==EINTR) {
                 usleep(100000);
                 continue;
             }
-            perror("[KASJER] read error");
+            perror("[KASJER] read");
             break;
         }
-        if (n == 0) {
+        if (n==0) {
             usleep(100000);
             continue;
         }
+        buf[n]='\0';
 
-        buf[n] = '\0';
-        
-        if (strncmp(buf, "BUY", 3) == 0) {
-            int pid, age;
-            sscanf(buf, "BUY %d %d", &pid, &age);
-            printf("[KASJER] Pasażer %d (wiek=%d)\n", pid, age);
+        if (strncmp(buf,"BUY",3)==0) {
+            int pid, age, group=0;
+            int c= sscanf(buf,"BUY %d %d %d",&pid,&age,&group);
+            if (c<2) {
+                printf("[KASJER] Błędne: %s\n",buf);
+                continue;
+            }
+            if (c<3) group=0;
 
-            /* Ustalamy łódź */
-            int boat = 1;
-            // np. w Twoim projekcie: jeśli <15 lub >70 -> boat=2
-            if (age < 15 || age > 70) {
-                boat = 2;
+            printf("[KASJER] Pasażer %d (wiek=%d) group=%d\n", pid, age, group);
+
+            /* Wybieramy boat */
+            int boat=1;
+            /* jesli group !=0 => boat=2 */
+            if (group>0) {
+                boat=2;
+            } else {
+                /* normal: dziecko<15 => boat=2, wiek>70 => boat=2, otherwise boat=1 */
+                if (age<15 || age>70) boat=2;
             }
 
-            /* Logika zniżek */
-            int discount = 0; 
-            int skip = 0;
-
-            if (pid >= 0 && pid < MAX_PIDS) {
+            int discount=0, skip=0;
+            if (pid>=0 && pid<MAX_PIDS) {
                 if (!traveled[pid]) {
-                    /* pierwszy raz */
-                    traveled[pid] = 1;
-
-                    /* Dzieci <3 lat -> discount=100% (darmowe) */
-                    if (age < 3) {
-                        discount = 100;
-                    }
+                    traveled[pid]=1; 
+                    if (age<3) discount=100; 
                 } else {
-                    /* już płynął -> discount=50%, skip=1 */
-                    discount = 50;
-                    skip = 1;
-
-                    /* ALE: jeśli to dziecko <3, to i tak discount=100%,
-                     * można zadecydować, która reguła jest „silniejsza”. 
-                     * Przykład: 
-                     if (age <3) {
-                         discount=100;
-                     }
-                     */
+                    /* wraca */
+                    skip=1;
+                    if (age<3) discount=100;
+                    else discount=50;
                 }
             }
 
             /* Odpowiadamy pasażerowi */
-            dprintf(fd_out, "OK %d BOAT=%d DISC=%d SKIP=%d\n",
-                    pid, boat, discount, skip);
-        }
-        else if (strncmp(buf, "QUIT", 4) == 0) {
-            printf("[KASJER] QUIT -> kończę.\n");
+            dprintf(fd_out,"OK %d BOAT=%d DISC=%d SKIP=%d GROUP=%d\n",
+                    pid, boat, discount, skip, group);
+
+        } else if (strncmp(buf,"QUIT",4)==0) {
+            printf("[KASJER] QUIT => end.\n");
             break;
-        }
-        else {
-            printf("[KASJER] Nieznany komunikat: %s\n", buf);
+        } else {
+            printf("[KASJER] Nieznane: %s\n", buf);
         }
     }
 
     close(fd_in);
     close(fd_out);
-    printf("[KASJER] Zakończono.\n");
+    printf("[KASJER] end.\n");
     return 0;
 }
