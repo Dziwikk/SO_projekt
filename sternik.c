@@ -26,7 +26,7 @@
 typedef struct {
     int pid;
     int disc;
-    int group; /* <--- nowy! */
+    int group; 
 } PassengerItem;
 
 typedef struct {
