@@ -210,7 +210,7 @@ void *generator_func(void *arg)
         /* Pauza 1..2 sekundy */
         int slp = rand() % 2 + 1;
         for (int i = 0; i < slp * 10 && !end_all; i++) {
-            //usleep(100000); // co 0.1 sek, łącznie ~1..2 s
+            usleep(100000); // co 0.1 sek, łącznie ~1..2 s
         }
     }
 
