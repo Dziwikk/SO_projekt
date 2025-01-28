@@ -376,7 +376,7 @@ void *boat1_thread(void *arg)
         pthread_mutex_unlock(&mutex);
 
         // Tu brak realnego sleep, można ewentualnie dać "usleep(1000*T1)".
-        usleep(1000*T1);
+        //usleep(1000*T1);
 
         /* Koniec rejsu -> zaczynamy wyładunek (OUTBOUND) */
         pthread_mutex_lock(&mutex);
@@ -631,7 +631,7 @@ void *boat2_thread(void *arg)
         logMsg("[BOAT2] Wypływam z %d pasażerami (rejs logicznie %ds).\n", rejsCount, T2);
         pthread_mutex_unlock(&mutex);
 
-        sleep(T2);//komentujemy do sprawdzenia - odkomentowac w celu realnej symulacji
+        //sleep(T2);//komentujemy do sprawdzenia - odkomentowac w celu realnej symulacji
 
         pthread_mutex_lock(&mutex);
         boat2_inrejs=0;
