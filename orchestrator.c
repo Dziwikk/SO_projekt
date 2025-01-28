@@ -32,9 +32,9 @@
 #define FIFO_KASJER_IN   "fifo_kasjer_in"
 
 /* Maksymalna liczba pasażerów */
-#define MAX_PASS 1000
+#define MAX_PASS 2000
 
-#define MAX_PID 5000 // limit pid-ow
+#define MAX_PID 50000 // limit pid-ow
 #define BASE_PID 1000 // pid bazowy
 /* Czas symulacji – ustalany przez usera */
 static int TIMEOUT;
@@ -125,98 +125,106 @@ static void run_passenger(int pid, int age, int group)
 
 /* ------------------------------- */
 /* Wątek generatora pasażerów */
-void *generator_func(void *arg)
-{
-    static int used_pids[5000];
+typedef struct {
+    int pid;
+    int group;
+    int age;  // Dodano pole do przechowywania wieku
+} PidEntry;
+
+void *generator_func(void *arg) {
+    static PidEntry used_pids[20000];
     static int used_count = 0;
     int base_pid = BASE_PID;
 
     srand(time(NULL) ^ getpid());
 
     while (!end_all && generator_running) {
-        /* sprawdzenie, czy mamy już MAX_PASS */
         if (pass_count >= MAX_PASS) {
             printf("[ORCH] Osiągnięto MAX_PASS, kończę generowanie pasażerów.\n");
             break;
         }
 
-        int dice = rand() % 4;
+        int dice = rand() % 3;
 
         if (dice == 0) {
-            /* Scenariusz: para dziecko + rodzic */
+            // Nowa grupa (dziecko + rodzic)
             int grp = base_pid + used_count;
-            // dziecko
             int child_pid = grp;
-            used_pids[used_count] = child_pid;
-            used_count++;
+            int parent_pid = grp + 30000;
 
-            int child_age = rand() % 14 + 1; // 1..14
+            // Generuj i zapisz wiek dziecka
+            int child_age = rand() % 14 + 1;
+            used_pids[used_count] = (PidEntry){child_pid, grp, child_age};
+            used_count++;
             run_passenger(child_pid, child_age, grp);
 
-            // rodzic
-            int parent_pid = grp + 1000;
-            int parent_age = rand() % 50 + 20; // 20..69
+            // Generuj i zapisz wiek rodzica
+            int parent_age = rand() % 50 + 20;
+            used_pids[used_count] = (PidEntry){parent_pid, grp, parent_age};
+            used_count++;
             run_passenger(parent_pid, parent_age, grp);
 
         } else if (dice == 1 && used_count > 0) {
-            /* Scenariusz: wraca stary pid (skip=1 w kasjerze) */
+            // Powrót pasażera/grupy (użyj ZAPISANEGO wieku dla grup)
             int idx = rand() % used_count;
-            int old_pid = used_pids[idx];
-            int age = rand() % 80 + 1;
-            printf("[GEN] WRACA old_pid=%d age=%d\n", old_pid, age);
-            run_passenger(old_pid, age, 0);
+            int old_group = used_pids[idx].group;
+
+            if (old_group != 0) {
+                printf("[GEN] WRACA GRUPA %d (oryginalne wieku)\n", old_group);
+                for (int i = 0; i < used_count; i++) {
+                    if (used_pids[i].group == old_group) {
+                        // Użyj ZAPISANEGO wieku zamiast losować nowy
+                        run_passenger(used_pids[i].pid, used_pids[i].age, old_group);
+                    }
+                }
+            } else {
+                // Dla pojedynczych pasażerów: nowy wiek
+                int new_age = rand() % 80 + 1;
+                printf("[GEN] WRACA POJEDYNCZY pid=%d (nowy wiek=%d)\n", used_pids[idx].pid, new_age);
+                run_passenger(used_pids[idx].pid, new_age, 0);
+            }
 
         } else {
-            /* Scenariusz: "normal" - 3..7 pasażerów naraz.
-               ALE jeśli wylosuje się child (<15), to generujemy parę child+rodzic 
-               (żeby dziecko nie zostało bez opiekuna).
-            */
-            int how_many = rand() % (g_max_batch - g_min_batch + 1) + g_min_batch;  
+            // Partia pasażerów (tylko grupy dziecko+rodzic)
+            int how_many = rand() % (g_max_batch - g_min_batch + 1) + g_min_batch;
             for (int i = 0; i < how_many; i++) {
                 int age = rand() % 80 + 1;
+
                 if (age < 15) {
-                    int grp = base_pid + used_count; // nowa grupa
-                    // Child
+                    int grp = base_pid + used_count;
                     int child_pid = grp;
-                    used_pids[used_count] = child_pid;
+                    int parent_pid = grp + 30000;
+
+                    // Zapisz dziecko
+                    used_pids[used_count] = (PidEntry){child_pid, grp, age};
                     used_count++;
                     run_passenger(child_pid, age, grp);
 
-                    // Rodzic
-                    int parent_pid = grp + 1000;
-                    int parent_age = rand() % 50 + 20; // 20..69
-                    used_pids[used_count] = parent_pid;
+                    // Zapisz rodzica (wiek 20-69)
+                    int parent_age = rand() % 50 + 20;
+                    used_pids[used_count] = (PidEntry){parent_pid, grp, parent_age};
                     used_count++;
                     run_passenger(parent_pid, parent_age, grp);
-
                 } else {
-                    int new_pid = base_pid + used_count;
-                    used_pids[used_count] = new_pid;
-                    used_count++;
-                    run_passenger(new_pid, age, 0);
-                }
-                if (pass_count >= MAX_PASS) {
-                    printf("[ORCH] Osiągnięto MAX_PASS, kończę generowanie pasażerów.\n");
-                    break;
+                    ///ZAKOMENTOWANA CZĘŚĆ DLA POJEDYNCZYCH PASAŻERÓW
+                     int new_pid = base_pid + used_count;
+                     used_pids[used_count] = (PidEntry){new_pid, 0, age};
+                     used_count++;
+                     run_passenger(new_pid, age, 0);
                 }
             }
         }
 
         if (used_count >= MAX_PID) {
-            printf("[GEN] Osiągnięto MAX_PID pid, stop.\n");
+            printf("[GEN] Osiągnięto MAX_PID, stop.\n");
             break;
         }
 
-        /* Pauza 1..2 sekundy */
-        int slp = rand() % 2 + 1;
-        for (int i = 0; i < slp * 10 && !end_all; i++) {
-            usleep(100000); // co 0.1 sek, łącznie ~1..2 s
-        }
+        usleep((rand() % 2 + 1) * 1000000);
     }
 
     return NULL;
 }
-
 /* ------------------------------- */
 /* Wątek time_killer -> kończy symulację po TIMEOUT sek. */
 void *time_killer_func(void *arg)
