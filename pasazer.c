@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+
 int main(int argc, char *argv[])
 {
     setbuf(stdout, NULL);
